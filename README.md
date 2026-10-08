@@ -295,10 +295,8 @@ Possible future versions could include:
 
 ## 📸 Screenshots
 
-Add a screenshot or gameplay GIF here after creating one:
+![Neon Dodge gameplay](./assets/demo.png)
 
-```md
-![Neon Dodge gameplay](assets/demo.png)
 ```
 
 ---
