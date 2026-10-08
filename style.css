@@ -1,3 +1,4 @@
+```css
 * {
   box-sizing: border-box;
 }
@@ -38,6 +39,9 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  /* Evita gesture/scroll indesiderati durante il gioco */
+  overscroll-behavior: none;
 }
 
 .site-shell {
@@ -119,6 +123,11 @@ h1 {
   font-size: 18px;
 }
 
+
+/* -----------------------------
+   GAME ARENA
+   ----------------------------- */
+
 .arena {
   position: relative;
 
@@ -133,15 +142,73 @@ h1 {
 
   background: #080b16;
 
+  /*
+   * Il gioco gestisce direttamente
+   * tutti i movimenti touch.
+   */
   touch-action: none;
+
+  /*
+   * Evita che il browser trasformi
+   * il trascinamento in scrolling.
+   */
+  overscroll-behavior: none;
+
+  /*
+   * Evita selezioni accidentali
+   * mentre si gioca.
+   */
+  user-select: none;
+  -webkit-user-select: none;
+
+  /*
+   * Evita alcune gesture native
+   * su Safari/iPhone.
+   */
+  -webkit-touch-callout: none;
 }
+
 
 #gameCanvas {
   display: block;
 
   width: 100%;
   height: 100%;
+
+  /*
+   * Fondamentale per il controllo touch.
+   */
+  touch-action: none;
+
+  /*
+   * Evita selezione del canvas.
+   */
+  user-select: none;
+  -webkit-user-select: none;
+
+  /*
+   * Evita il menu/gesture di Safari
+   * quando si tiene premuto il canvas.
+   */
+  -webkit-touch-callout: none;
+
+  /*
+   * Evita il flash/tap highlight
+   * sui dispositivi mobile.
+   */
+  -webkit-tap-highlight-color: transparent;
+
+  /*
+   * Impedisce al browser di trattare
+   * il canvas come un'immagine trascinabile.
+   */
+  -webkit-user-drag: none;
 }
+
+
+/* -----------------------------
+   OVERLAY
+   ----------------------------- */
 
 .overlay {
   position: absolute;
@@ -157,6 +224,12 @@ h1 {
   backdrop-filter: blur(5px);
 
   text-align: center;
+
+  /*
+   * Anche l'overlay non deve causare
+   * scroll/gesture durante il gioco.
+   */
+  touch-action: none;
 }
 
 .overlay.hidden {
@@ -191,6 +264,11 @@ h1 {
   line-height: 1;
 }
 
+
+/* -----------------------------
+   BUTTONS
+   ----------------------------- */
+
 .button-row {
   display: flex;
   align-items: center;
@@ -213,6 +291,20 @@ h1 {
   font-weight: 800;
 
   cursor: pointer;
+
+  /*
+   * Evita delay/gesture touch sui pulsanti.
+   */
+  touch-action: manipulation;
+
+  /*
+   * Evita selezione del testo premendo
+   * rapidamente il pulsante.
+   */
+  user-select: none;
+  -webkit-user-select: none;
+
+  -webkit-tap-highlight-color: transparent;
 }
 
 .button-primary {
@@ -225,6 +317,11 @@ h1 {
   outline: 3px solid rgba(118, 87, 255, 0.45);
   outline-offset: 2px;
 }
+
+
+/* -----------------------------
+   CONTROLS
+   ----------------------------- */
 
 .controls {
   display: grid;
@@ -278,6 +375,11 @@ h1 {
   margin: 0;
 }
 
+
+/* -----------------------------
+   MOBILE
+   ----------------------------- */
+
 @media (max-width: 680px) {
 
   .site-shell {
@@ -298,8 +400,27 @@ h1 {
 
   .arena {
     min-height: 300px;
+
+    /*
+     * Ribadito su mobile per assicurare
+     * che il browser non intercetti il touch.
+     */
+    touch-action: none;
+  }
+
+  #gameCanvas {
+    /*
+     * Controllo touch completamente
+     * affidato al gioco.
+     */
+    touch-action: none;
   }
 }
+
+
+/* -----------------------------
+   REDUCED MOTION
+   ----------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
 
@@ -307,3 +428,8 @@ h1 {
     transition: none !important;
   }
 }
+```
+
+Questo CSS va usato insieme al **`game.js` corretto che ti ho mandato prima**. La parte fondamentale è che ora `#gameCanvas` usa `touch-action: none` e il JavaScript segue la posizione effettiva del dito invece di usare semplicemente sinistra/destra.
+
+**Nota:** il CSS da solo non risolve il lag del cursore; la correzione principale è nel `game.js`. Con i due file insieme il controllo mobile dovrebbe risultare molto più fluido.
