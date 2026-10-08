@@ -23,7 +23,6 @@
   const pauseButton = document.getElementById("pauseButton");
   const shieldButton = document.getElementById("shieldButton");
 
-
   let width = 0;
   let height = 0;
   let pixelRatio = 1;
@@ -52,10 +51,13 @@
   let obstacleTimer = 0;
   let gemTimer = 0;
 
-  let direction = 0;
-
+  // Tastiera
   const keys = Object.create(null);
 
+  // Touch / pointer
+  let touchActive = false;
+  let touchPointerId = null;
+  let touchTargetX = null;
 
   bestEl.textContent = best;
 
@@ -100,6 +102,27 @@
   }
 
 
+  // Converte la posizione del pointer
+  // dalla pagina alle coordinate reali del canvas.
+  function getCanvasX(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    if (rect.width <= 0) {
+      return width / 2;
+    }
+
+    const x =
+      (event.clientX - rect.left) *
+      (width / rect.width);
+
+    return clamp(
+      x,
+      player.width / 2,
+      width - player.width / 2
+    );
+  }
+
+
   // -----------------------------
   // Canvas
   // -----------------------------
@@ -138,6 +161,14 @@
         player.width / 2,
         width - player.width / 2
       );
+
+      if (touchTargetX !== null) {
+        touchTargetX = clamp(
+          touchTargetX,
+          player.width / 2,
+          width - player.width / 2
+        );
+      }
     }
 
     draw();
@@ -159,6 +190,10 @@
     obstacles = [];
     gems = [];
     particles = [];
+
+    touchActive = false;
+    touchPointerId = null;
+    touchTargetX = null;
 
     player = {
       x: width / 2,
@@ -248,7 +283,6 @@
     count = 12
   ) {
     for (let i = 0; i < count; i++) {
-
       const angle =
         Math.random() *
         Math.PI *
@@ -341,6 +375,10 @@
     running = false;
     paused = false;
 
+    touchActive = false;
+    touchPointerId = null;
+    touchTargetX = null;
+
     cancelAnimationFrame(animationFrame);
 
     const record = score > best;
@@ -387,6 +425,14 @@
     }
 
     paused = !paused;
+
+    if (paused) {
+      // Evita che il touch rimanga "agganciato"
+      // mentre il gioco è in pausa.
+      touchActive = false;
+      touchPointerId = null;
+      touchTargetX = null;
+    }
 
     pauseButton.textContent =
       paused
@@ -435,7 +481,6 @@
     }
 
     if (!paused) {
-
       const dt =
         Math.min(
           (time - lastTime) / 1000,
@@ -476,28 +521,74 @@
       );
 
 
-    const move =
-      direction || keyboard;
+    // -----------------------------
+    // Player movement
+    // -----------------------------
 
+    if (touchActive && touchTargetX !== null) {
 
-    player.x = clamp(
-      player.x +
-        move *
-        player.speed *
-        dt,
+      /*
+       * MOBILE:
+       * Il player segue direttamente il dito.
+       *
+       * Non usiamo più:
+       * direction = -1 / +1
+       *
+       * perché quel sistema faceva muovere
+       * la navicella a velocità fissa.
+       *
+       * Ora touchTargetX contiene la posizione
+       * esatta del dito sul canvas.
+       */
 
-      player.width / 2,
+      const targetX = clamp(
+        touchTargetX,
+        player.width / 2,
+        width - player.width / 2
+      );
 
-      width -
-        player.width / 2
-    );
+      /*
+       * Interpolazione molto rapida.
+       *
+       * 30 = quasi immediato.
+       * A differenza del vecchio sistema,
+       * il player non "insegue" una direzione.
+       */
+
+      const followSpeed = 30;
+
+      player.x +=
+        (targetX - player.x) *
+        Math.min(
+          1,
+          followSpeed * dt
+        );
+
+    } else {
+
+      // PC / tastiera
+      player.x = clamp(
+        player.x +
+          keyboard *
+          player.speed *
+          dt,
+
+        player.width / 2,
+
+        width -
+          player.width / 2
+      );
+    }
 
 
     obstacleTimer += dt;
     gemTimer += dt;
 
 
+    // -----------------------------
     // Spawn obstacles
+    // -----------------------------
+
     if (
       obstacleTimer >
       0.58 -
@@ -513,7 +604,10 @@
     }
 
 
+    // -----------------------------
     // Spawn gems
+    // -----------------------------
+
     if (gemTimer > 2.2) {
 
       spawnGem();
@@ -522,7 +616,10 @@
     }
 
 
+    // -----------------------------
     // Move obstacles
+    // -----------------------------
+
     obstacles.forEach((obstacle) => {
 
       obstacle.y +=
@@ -533,7 +630,10 @@
     });
 
 
+    // -----------------------------
     // Move gems
+    // -----------------------------
+
     gems.forEach((gem) => {
 
       gem.y +=
@@ -541,7 +641,10 @@
     });
 
 
+    // -----------------------------
     // Move particles
+    // -----------------------------
+
     particles.forEach((particle) => {
 
       particle.x +=
@@ -557,7 +660,10 @@
     });
 
 
-    // Remove objects outside screen
+    // -----------------------------
+    // Remove objects
+    // -----------------------------
+
     obstacles =
       obstacles.filter(
         obstacle =>
@@ -579,7 +685,10 @@
       );
 
 
+    // -----------------------------
     // Obstacle collision
+    // -----------------------------
+
     for (
       let i = obstacles.length - 1;
       i >= 0;
@@ -617,7 +726,10 @@
     }
 
 
+    // -----------------------------
     // Gem collection
+    // -----------------------------
+
     for (
       let i = gems.length - 1;
       i >= 0;
@@ -653,7 +765,10 @@
     }
 
 
+    // -----------------------------
     // Passive score
+    // -----------------------------
+
     score +=
       Math.floor(
         dt *
@@ -662,7 +777,10 @@
       );
 
 
+    // -----------------------------
     // Level progression
+    // -----------------------------
+
     const next =
       Math.floor(
         score / 150
@@ -681,7 +799,10 @@
     }
 
 
+    // -----------------------------
     // Recharge shield
+    // -----------------------------
+
     if (!shieldActive) {
 
       shieldEnergy =
@@ -706,7 +827,10 @@
     }
 
 
-    // Combo slowly decreases
+    // -----------------------------
+    // Combo
+    // -----------------------------
+
     if (
       Math.random() <
         dt * 0.55 &&
@@ -993,6 +1117,10 @@
   );
 
 
+  // -----------------------------
+  // Keyboard
+  // -----------------------------
+
   window.addEventListener(
     "keydown",
     (event) => {
@@ -1042,21 +1170,54 @@
   );
 
 
+  // -----------------------------
   // Mobile / touch
+  // -----------------------------
+
+  /*
+   * IMPORTANTE:
+   *
+   * Prima il gioco faceva:
+   *
+   *     metà sinistra -> -1
+   *     metà destra   -> +1
+   *
+   * e quindi il player si muoveva sempre
+   * a velocità fissa.
+   *
+   * Adesso il dito determina direttamente
+   * la posizione desiderata del player.
+   */
+
   canvas.addEventListener(
     "pointerdown",
     (event) => {
 
-      const rect =
-        canvas.getBoundingClientRect();
+      // Ignora il mouse.
+      // La tastiera continua a funzionare su PC.
+      if (event.pointerType === "mouse") {
+        return;
+      }
 
-      direction =
-        event.clientX -
-          rect.left <
-        rect.width / 2
-          ? -1
-          : 1;
-    }
+      event.preventDefault();
+
+      touchActive = true;
+      touchPointerId = event.pointerId;
+
+      // Mantiene il controllo anche se il dito
+      // esce leggermente dal canvas.
+      try {
+        canvas.setPointerCapture(
+          event.pointerId
+        );
+      } catch {
+        // Pointer capture non disponibile
+      }
+
+      touchTargetX =
+        getCanvasX(event);
+    },
+    { passive: false }
   );
 
 
@@ -1064,27 +1225,82 @@
     "pointermove",
     (event) => {
 
-      if (!event.buttons) {
+      if (!touchActive) {
         return;
       }
 
-      const rect =
-        canvas.getBoundingClientRect();
+      if (
+        event.pointerId !==
+        touchPointerId
+      ) {
+        return;
+      }
 
-      direction =
-        event.clientX -
-          rect.left <
-        rect.width / 2
-          ? -1
-          : 1;
-    }
+      event.preventDefault();
+
+      touchTargetX =
+        getCanvasX(event);
+    },
+    { passive: false }
   );
 
 
-  window.addEventListener(
+  function endTouch(event) {
+
+    if (!touchActive) {
+      return;
+    }
+
+    if (
+      event &&
+      event.pointerId !==
+      touchPointerId
+    ) {
+      return;
+    }
+
+    touchActive = false;
+
+    touchPointerId = null;
+    touchTargetX = null;
+
+    if (
+      event &&
+      canvas.hasPointerCapture &&
+      canvas.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      try {
+        canvas.releasePointerCapture(
+          event.pointerId
+        );
+      } catch {
+        // Ignore
+      }
+    }
+  }
+
+
+  canvas.addEventListener(
     "pointerup",
+    endTouch
+  );
+
+
+  canvas.addEventListener(
+    "pointercancel",
+    endTouch
+  );
+
+
+  canvas.addEventListener(
+    "lostpointercapture",
     () => {
-      direction = 0;
+
+      touchActive = false;
+      touchPointerId = null;
+      touchTargetX = null;
     }
   );
 
