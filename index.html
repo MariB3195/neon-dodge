@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta
+    name="description"
+    content="Neon Dodge — a browser arcade game built with vanilla HTML, CSS and JavaScript."
+  >
+
+  <title>Neon Dodge</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="site-shell">
+
+    <section class="game-shell" aria-labelledby="game-title">
+
+      <header class="game-header">
+
+        <div>
+          <p class="eyebrow">
+            JavaScript Arcade · Portfolio Edition
+          </p>
+
+          <h1 id="game-title">
+            NEON DODGE
+          </h1>
+
+          <p class="subtitle">
+            Survive. Collect. Level up.
+          </p>
+        </div>
+
+        <div class="stats" aria-label="Game statistics">
+
+          <div class="stat">
+            <span>Score</span>
+            <strong id="score">0</strong>
+          </div>
+
+          <div class="stat">
+            <span>Best</span>
+            <strong id="best">0</strong>
+          </div>
+
+          <div class="stat">
+            <span>Level</span>
+            <strong id="level">1</strong>
+          </div>
+
+          <div class="stat">
+            <span>Combo</span>
+            <strong id="combo">x1</strong>
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <section class="arena" aria-label="Game area">
+
+        <canvas
+          id="gameCanvas"
+          aria-label="Neon Dodge game"
+        ></canvas>
+
+
+        <div id="overlay" class="overlay">
+
+          <div class="modal">
+
+            <p class="eyebrow">
+              Arcade Challenge
+            </p>
+
+            <h2 id="overlayTitle">
+              NEON DODGE
+            </h2>
+
+            <p id="overlayText">
+              Dodge obstacles, collect crystals and use your shield when things get difficult.
+            </p>
+
+            <div
+              id="finalScore"
+              class="final-score"
+              hidden
+            >
+              0 pts
+            </div>
+
+            <button
+              id="startButton"
+              class="button button-primary"
+              type="button"
+            >
+              Start game
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="controls"
+        aria-label="Game controls"
+      >
+
+        <div class="shield-row">
+
+          <div class="row-label">
+
+            <span>
+              Shield energy
+            </span>
+
+            <span id="shieldLabel">
+              100%
+            </span>
+
+          </div>
+
+          <div class="progress">
+
+            <div
+              id="shieldFill"
+              class="progress-fill"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="button-row">
+
+          <button
+            id="pauseButton"
+            class="button"
+            type="button"
+          >
+            Pause
+          </button>
+
+          <button
+            id="shieldButton"
+            class="button"
+            type="button"
+          >
+            Use shield
+          </button>
+
+          <span class="hint">
+            Desktop: ← → / A D · Mobile: tap left/right
+          </span>
+
+        </div>
+
+
+        <p
+          id="status"
+          class="status"
+          aria-live="polite"
+        >
+          Press Start to play.
+        </p>
+
+      </section>
+
+    </section>
+
+  </main>
+
+
+  <script src="game.js"></script>
+
+</body>
+</html>
